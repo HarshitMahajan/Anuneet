@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Game for You</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(6, 100px);
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .card {
+            width: 100px;
+            height: 120px;
+            border-radius: 10px;
+            background-color: #ffe0b2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card:hover {
+            transform: scale(1.1);
+        }
+        .card.matched {
+            background-color: #7ed6df;
+            cursor: default;
+            pointer-events: none;
+        }
+        #timer {
+            font-size: 18px;
+            margin-top: 10px;
+            background-color: #fff3cd;
+            padding: 10px 20px;
+            display: inline-block;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        #message {
+            display: none;
+            margin-top: 30px;
+            font-size: 18px;
+            padding: 20px;
+            background-color: #ffcccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .confetti div {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f9ca24;
+            animation: fall 3s linear infinite;
+        }
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0.3;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>For You, My Love ❤️</h1>
+    <p>Match all the cards before the time runs out to unlock a surprise!</p>
+    <div id="timer">Time: <span id="time">60</span> seconds</div>
+    <div id="game-container"></div>
+    <div id="message">
+        <h2>You Did It! 🎉</h2>
+        <p>Every moment with you is a gift, and today’s another reason I’m lucky to have you. You’re my favorite player in the game of life. I love you more than words can say! 💕</p>
+    </div>
+    <div class="confetti" id="confetti"></div>
+
+    <script>
+        const cards = [
+            "💖", "💖", "🌹", "🌹", "🍫", "🍫",
+            "🎵", "🎵", "⭐", "⭐", "🍕", "🍕",
+            "🎁", "🎁", "🐻", "🐻", "💍", "💍",
+            "☀️", "☀️", "🌙", "🌙", "🍓", "🍓"
+        ];
+        const gameContainer = document.getElementById("game-container");
+        const message = document.getElementById("message");
+        const timerElement = document.getElementById("time");
+        const confetti = document.getElementById("confetti");
+        let flippedCards = [];
+        let matchedCount = 0;
+        let timeLeft = 60;
+        let timer;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createCard(symbol) {
+            const card = document.createElement("div");
+            card.classList.add("card");
+            card.dataset.symbol = symbol;
+            card.addEventListener("click", handleCardClick);
+            return card;
+        }
+
+        function handleCardClick(event) {
+            const card = event.target;
+
+            if (card.classList.contains("matched") || flippedCards.length === 2 || card === flippedCards[0]) {
+                return;
+            }
+
+            card.textContent = card.dataset.symbol;
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                const [card1, card2] = flippedCards;
+                if (card1.dataset.symbol === card2.dataset.symbol) {
+                    card1.classList.add("matched");
+                    card2.classList.add("matched");
+                    matchedCount += 2;
+                    flippedCards = [];
+
+                    if (matchedCount === cards.length) {
+                        clearInterval(timer);
+                        setTimeout(() => {
+                            message.style.display = "block";
+                            startConfetti();
+                        }, 500);
+                    }
+                } else {
+                    setTimeout(() => {
+                        card1.textContent = "";
+                        card2.textContent = "";
+                        flippedCards = [];
+                    }, 1000);
+                }
+            }
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+
+                if (timeLeft === 0) {
+                    clearInterval(timer);
+                    alert("Time's up! Try again!");
+                    window.location.reload();
+                }
+            }, 1000);
+        }
+
+        function startConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement("div");
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 2}s`;
+                confetti.appendChild(particle);
+            }
+        }
+
+        function setupGame() {
+            shuffle(cards);
+            cards.forEach(symbol => {
+                const card = createCard(symbol);
+                gameContainer.appendChild(card);
+            });
+            startTimer();
+        }
+
+        setupGame();
+    </script>
+</body>
+</html>
+
